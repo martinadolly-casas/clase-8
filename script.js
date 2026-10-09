@@ -2,7 +2,7 @@ const tbodyAmerica = document.querySelector("#america");
             const tbodyEuropa = document.querySelector("#europa");
             const tbodyOtros = document.querySelector("#otros");
 
-            const ENDPOINT = "https://api.myjson.online/v1/records/e4b9ef04-7e6f-4292-909a-b4e384be8eb2";
+            const ENDPOINT = "https://api.myjson.online/v1/records/076f7b35-1f65-4a33-a723-0e972db628f0";
 
             const paisesAmerica = ["Argentina", "Brazil", "Canada", "Chile", "Colombia", "Mexico", "United States"];
             const paisesEuropa = ["Austria", "Belgium", "Czech Republic", "Denmark", "Estonia", "Finland", "France", "Germany", "Ireland", "Italy", "Netherlands", "Sweden", "Switzerland", "United Kingdom"];
@@ -23,7 +23,15 @@ const tbodyAmerica = document.querySelector("#america");
                     return respuesta.json();
                 })
                 .then((datos) => {
-                    const escuelas = datos.data;
+                    const escuelas = Array.isArray(datos) ? datos
+                        : Array.isArray(datos.data) ? datos.data
+                        : Array.isArray(datos.data?.data) ? datos.data.data
+                        : Array.isArray(datos.data?.content) ? datos.data.content
+                        : null;
+
+                    if (!escuelas) {
+                        throw new Error("No se encontró una lista de universidades en el JSON.");
+                    }
 
                     escuelas.forEach((e) => {
                         const esAmericana = paisesAmerica.some((pais) => e.location.includes(pais));
@@ -53,13 +61,13 @@ const tbodyAmerica = document.querySelector("#america");
                     document.querySelector("#bolitas_otras").innerHTML = bolitas(cuenta_otros);
                 })
                 .catch((error) => {
-                    console.error("Algo salió mal:", error);
+                    console.error("No fue posible cargar las universidades:", error);
+                    const aviso = '<tr><td colspan="3">No se pudieron cargar los datos. Revisa el enlace y el formato del JSON.</td></tr>';
+                    tbodyAmerica.innerHTML = aviso;
+                    tbodyEuropa.innerHTML = aviso;
+                    tbodyOtros.innerHTML = aviso;
                 });
 
             function bolitas(x) {
-                var visual = "";
-                for (let i = 0; i < x; i++) {
-                    visual += " ● ";
-                }
-                return "<span>" + visual + "</span>";
+                return Array.from({length: x}, () => '<span class="institucion-icono" aria-label="Una institución"></span>').join('');
             }
